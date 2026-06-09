@@ -1,17 +1,762 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>Twoje Radio</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muza-X — Muzyka dla Twojego Biznesu</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06080f;
+  --s1:#0c0f1a;
+  --s2:#101420;
+  --border:#1a1f30;
+  --border2:#232840;
+  --a:#b8ff57;
+  --a2:#57c4ff;
+  --a3:#ff7eb3;
+  --a4:#ffb657;
+  --text:#f0eeff;
+  --muted:#3a3f58;
+  --muted2:#5a6080;
+  --glow:rgba(184,255,87,0.15);
+  --glow2:rgba(87,196,255,0.12);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;font-weight:400;overflow-x:hidden}
+
+/* === CANVAS BG === */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.7}
+
+/* === GRAIN === */
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.45}
+
+/* === LAYOUT === */
+.wrap{position:relative;z-index:1}
+
+/* === NAV === */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.1rem 3rem;border-bottom:1px solid var(--border);backdrop-filter:blur(24px);background:rgba(6,8,15,0.8)}
+.nav-logo{font-family:'Instrument Serif',serif;font-size:1.7rem;font-style:italic;color:var(--a);letter-spacing:-.02em;text-shadow:0 0 30px rgba(184,255,87,.4)}
+.nav-logo span{color:var(--text);font-style:normal}
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--a)}
+.nav-actions{display:flex;gap:.75rem;align-items:center}
+
+/* === BUTTONS === */
+.btn{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.65rem 1.5rem;cursor:pointer;border:1px solid;text-decoration:none;transition:all .2s;display:inline-block;position:relative}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--muted2)}
+.btn-ghost:hover{border-color:var(--a2);color:var(--a2);box-shadow:0 0 20px rgba(87,196,255,.15)}
+.btn-primary{background:var(--a);border-color:var(--a);color:#06080f;font-weight:700}
+.btn-primary:hover{background:#c8ff70;border-color:#c8ff70;box-shadow:0 0 30px rgba(184,255,87,.4)}
+.btn-lg{padding:.9rem 2.5rem;font-size:.8rem}
+.btn-block{width:100%;text-align:center}
+.btn-pink{background:transparent;border-color:var(--a3);color:var(--a3)}
+.btn-pink:hover{background:rgba(255,126,179,.1);box-shadow:0 0 20px rgba(255,126,179,.2)}
+
+/* === HERO === */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8rem 2rem 5rem;position:relative;overflow:hidden}
+.hero-orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(184,255,87,.12),transparent 70%);top:-200px;left:-100px;animation-delay:0s}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(87,196,255,.1),transparent 70%);bottom:-100px;right:-100px;animation-delay:-3s}
+.orb3{width:300px;height:300px;background:radial-gradient(circle,rgba(255,126,179,.08),transparent 70%);top:40%;left:60%;animation-delay:-5s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-40px) scale(1.05)}}
+.hero-tag{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--a);border:1px solid rgba(184,255,87,.3);padding:.4rem 1.1rem;margin-bottom:2.5rem;display:inline-block;animation:fadeUp .6s both;background:rgba(184,255,87,.05)}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(3.2rem,9.5vw,8.5rem);line-height:.92;letter-spacing:-.04em;margin-bottom:2rem;animation:fadeUp .7s .1s both}
+.hero h1 em{font-style:italic;color:var(--a);text-shadow:0 0 60px rgba(184,255,87,.5)}
+.hero h1 .line2{display:block;font-size:clamp(1.6rem,4.5vw,4rem);color:var(--muted2);font-style:normal;margin-top:.3rem}
+.hero-sub{font-size:.9rem;color:var(--muted2);max-width:500px;line-height:1.9;margin-bottom:3rem;animation:fadeUp .7s .2s both;font-weight:400}
+.hero-ctas{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;animation:fadeUp .7s .3s both}
+.hero-stats{display:flex;gap:3rem;margin-top:4rem;animation:fadeUp .7s .45s both}
+.hstat-num{font-family:'Instrument Serif',serif;font-size:2.5rem;color:var(--a);line-height:1;text-shadow:0 0 30px rgba(184,255,87,.4)}
+.hstat-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);margin-top:.2rem}
+
+/* === MARQUEE === */
+.marquee-wrap{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:1.2rem 0;overflow:hidden;background:var(--s1);position:relative}
+.marquee-wrap::before,.marquee-wrap::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none}
+.marquee-wrap::before{left:0;background:linear-gradient(90deg,var(--s1),transparent)}
+.marquee-wrap::after{right:0;background:linear-gradient(-90deg,var(--s1),transparent)}
+.marquee-track{display:flex;gap:3.5rem;animation:marquee 25s linear infinite;white-space:nowrap}
+.marquee-track span{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);flex-shrink:0;display:flex;align-items:center;gap:.8rem}
+.marquee-track span::before{content:'◆';color:var(--a);font-size:.5rem}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* === SECTIONS === */
+.section{padding:6rem 3rem;position:relative}
+.section-tag{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--a);margin-bottom:1rem;display:flex;align-items:center;gap:.6rem}
+.section-tag::before{content:'';width:20px;height:1px;background:var(--a)}
+.section-title{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,5vw,3.8rem);line-height:1.05;letter-spacing:-.025em;margin-bottom:1rem}
+.section-title em{font-style:italic;color:var(--a)}
+.section-sub{font-size:.88rem;color:var(--muted2);max-width:520px;line-height:1.9;font-weight:400}
+
+/* === FEATURES === */
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:4rem}
+.feat{background:var(--bg);padding:2.5rem 2rem;transition:background .3s,box-shadow .3s;position:relative;overflow:hidden}
+.feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a),transparent);opacity:0;transition:opacity .3s}
+.feat:hover{background:var(--s1)}
+.feat:hover::before{opacity:1}
+.feat-num{font-family:'Instrument Serif',serif;font-size:4rem;color:var(--border2);line-height:1;position:absolute;top:1rem;right:1.25rem;pointer-events:none}
+.feat-icon{font-size:1.4rem;margin-bottom:1.25rem;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);position:relative;z-index:1}
+.feat-icon.green{border-color:rgba(184,255,87,.3);background:rgba(184,255,87,.06)}
+.feat-icon.blue{border-color:rgba(87,196,255,.3);background:rgba(87,196,255,.06)}
+.feat-icon.pink{border-color:rgba(255,126,179,.3);background:rgba(255,126,179,.06)}
+.feat-icon.amber{border-color:rgba(255,182,87,.3);background:rgba(255,182,87,.06)}
+.feat-title{font-weight:700;font-size:.95rem;margin-bottom:.6rem;letter-spacing:-.01em;position:relative;z-index:1}
+.feat-desc{font-size:.78rem;color:var(--muted2);line-height:1.85;font-weight:400;position:relative;z-index:1}
+
+/* === DEMO SECTION === */
+.demo-sec{padding:5rem 3rem;background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.demo-sec::before{content:'';position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(87,196,255,.07),transparent 70%);pointer-events:none}
+.demo-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;position:relative;z-index:1}
+.player-card{background:var(--bg);border:1px solid var(--border2);padding:2rem;position:relative;overflow:hidden}
+.player-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(87,196,255,.04),transparent 60%);pointer-events:none}
+.player-card-glow{position:absolute;top:-100px;right:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(87,196,255,.1),transparent 70%);pointer-events:none}
+.stab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:1.75rem}
+.stab{background:transparent;border:1px solid var(--border);color:var(--muted2);font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;padding:.55rem .3rem;cursor:pointer;transition:all .25s}
+.stab:hover{border-color:var(--a2);color:var(--a2)}
+.stab.on{border-color:var(--a);color:var(--a);background:rgba(184,255,87,.07);box-shadow:inset 0 0 12px rgba(184,255,87,.08)}
+.np-lbl{font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.np-title{font-family:'Instrument Serif',serif;font-size:1.3rem;margin-bottom:.15rem;color:var(--text)}
+.np-artist{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted2);margin-bottom:1.25rem}
+.wv{display:flex;align-items:center;gap:3px;height:32px;margin-bottom:1.25rem}
+.wb{width:3px;border-radius:1px;background:var(--a);opacity:.12;transition:opacity .3s}
+.player-card.playing .wb{opacity:1;box-shadow:0 0 8px rgba(184,255,87,.5)}
+.wb:nth-child(1){height:35%;animation:wv 1.2s 0s ease-in-out infinite}
+.wb:nth-child(2){height:70%;animation:wv 1.2s .1s ease-in-out infinite}
+.wb:nth-child(3){height:50%;animation:wv 1.2s .2s ease-in-out infinite}
+.wb:nth-child(4){height:90%;animation:wv 1.2s .3s ease-in-out infinite}
+.wb:nth-child(5){height:55%;animation:wv 1.2s .4s ease-in-out infinite}
+.wb:nth-child(6){height:75%;animation:wv 1.2s .5s ease-in-out infinite}
+.wb:nth-child(7){height:40%;animation:wv 1.2s .6s ease-in-out infinite}
+.wb:nth-child(8){height:65%;animation:wv 1.2s .7s ease-in-out infinite}
+.wb:nth-child(9){height:48%;animation:wv 1.2s .8s ease-in-out infinite}
+.wb:nth-child(10){height:80%;animation:wv 1.2s .9s ease-in-out infinite}
+.wb:nth-child(11){height:38%;animation:wv 1.2s 1s ease-in-out infinite}
+.wb:nth-child(12){height:60%;animation:wv 1.2s 1.1s ease-in-out infinite}
+@keyframes wv{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.18)}}
+.ctrl{display:flex;align-items:center;gap:.9rem}
+.pbtn{width:52px;height:52px;background:var(--a);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;position:relative}
+.pbtn::after{content:'';position:absolute;inset:-4px;background:var(--a);opacity:0;transition:opacity .3s;z-index:-1;filter:blur(12px)}
+.pbtn:hover::after{opacity:.4}
+.pbtn:hover{transform:scale(1.06)}
+.pbtn svg{width:20px;height:20px;fill:#06080f}
+.vol-wrap{flex:1;display:flex;align-items:center;gap:.5rem}
+.vol-wrap span{font-size:.7rem;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;flex:1;height:2px;background:var(--border2);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--a);cursor:pointer;box-shadow:0 0 8px rgba(184,255,87,.6)}
+
+/* === PRICING === */
+.pricing-section{padding:6rem 3rem;position:relative;overflow:hidden}
+.pricing-section::before{content:'';position:absolute;bottom:-200px;left:-200px;width:700px;height:700px;background:radial-gradient(circle,rgba(184,255,87,.05),transparent 70%);pointer-events:none}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:4rem;position:relative;z-index:1}
+.plan{background:var(--bg);padding:2.5rem 2rem;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:background .3s}
+.plan:hover{background:var(--s1)}
+.plan.featured{background:var(--s2);border:1px solid rgba(184,255,87,.25)}
+.plan.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a),transparent)}
+.plan-badge{position:absolute;top:1.5rem;right:1.5rem;font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;background:rgba(184,255,87,.15);color:var(--a);padding:.3rem .8rem;border:1px solid rgba(184,255,87,.3)}
+.plan-name{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted2);margin-bottom:.75rem}
+.plan-price{font-family:'Instrument Serif',serif;font-size:4rem;line-height:1;letter-spacing:-.04em;margin-bottom:.2rem}
+.plan-price sup{font-size:1.3rem;vertical-align:top;margin-top:.6rem;font-family:'Syne',sans-serif;font-weight:400;color:var(--muted2)}
+.plan-price .dash{color:var(--muted)}
+.plan-period{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2rem}
+.plan-features{list-style:none;flex:1;margin-bottom:2rem}
+.plan-features li{font-size:.78rem;color:var(--muted2);padding:.55rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;font-weight:400}
+.plan-features li .chk{color:var(--a);font-weight:700;flex-shrink:0;font-size:.9rem}
+.plan-features li.no{color:var(--muted)}
+.plan-features li.no .chk{color:var(--muted)}
+.plan-note{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);text-align:center;margin-top:.75rem;letter-spacing:.05em}
+
+/* === HOW === */
+.how-section{padding:6rem 3rem;background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:4rem}
+.step{background:var(--bg);padding:2.5rem 1.75rem;position:relative;overflow:hidden;transition:background .3s}
+.step:hover{background:var(--s1)}
+.step-num{font-family:'Instrument Serif',serif;font-size:5rem;line-height:1;margin-bottom:1rem;background:linear-gradient(180deg,var(--border2),transparent);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.step-title{font-weight:700;font-size:.9rem;margin-bottom:.5rem;color:var(--text)}
+.step-desc{font-size:.75rem;color:var(--muted2);line-height:1.9;font-weight:400}
+.step-line{position:absolute;top:0;right:0;width:1px;height:100%;background:linear-gradient(180deg,transparent,var(--border2),transparent)}
+
+/* === FAQ === */
+.faq-section{padding:6rem 3rem}
+.faq-inner{max-width:720px;margin:4rem auto 0;display:flex;flex-direction:column;gap:2px}
+.faq-item{background:var(--s1);border:1px solid var(--border);transition:border-color .3s}
+.faq-item.open{border-color:var(--border2)}
+.faq-q{padding:1.3rem 1.75rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.88rem;user-select:none;gap:1rem}
+.faq-q .ico{color:var(--a);font-size:1.3rem;transition:transform .35s;flex-shrink:0}
+.faq-item.open .faq-q .ico{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-item.open .faq-a{max-height:300px}
+.faq-a p{padding:0 1.75rem 1.3rem;font-size:.8rem;color:var(--muted2);line-height:1.9;font-weight:400}
+
+/* === CTA BANNER === */
+.cta-banner{padding:6rem 3rem;text-align:center;position:relative;overflow:hidden;background:var(--s1);border-top:1px solid var(--border)}
+.cta-banner::before{content:'';position:absolute;top:-300px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse,rgba(184,255,87,.08),transparent 60%);pointer-events:none}
+.cta-banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent)}
+.cta-badge{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--a);margin-bottom:1.5rem;display:inline-flex;align-items:center;gap:.5rem}
+.cta-badge::before,.cta-badge::after{content:'';width:30px;height:1px;background:var(--a)}
+.cta-title{font-family:'Instrument Serif',serif;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-.035em;margin-bottom:1rem;position:relative;z-index:1}
+.cta-title em{font-style:italic;color:var(--a);text-shadow:0 0 60px rgba(184,255,87,.5)}
+.cta-sub{color:var(--muted2);font-size:.88rem;margin-bottom:3rem;position:relative;z-index:1;font-weight:400}
+.cta-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.trust-row{display:flex;gap:2rem;justify-content:center;margin-top:3rem;flex-wrap:wrap;position:relative;z-index:1}
+.trust-item{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.trust-item::before{content:'✓';color:var(--a)}
+
+/* === MODAL === */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(12px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--s1);border:1px solid var(--border2);width:100%;max-width:450px;margin:1rem;position:relative;overflow:hidden}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--a),transparent)}
+.modal-header{padding:1.75rem 2rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:'Instrument Serif',serif;font-size:1.6rem;letter-spacing:-.02em}
+.modal-close{background:none;border:none;color:var(--muted2);font-size:1.5rem;cursor:pointer;line-height:1;padding:.25rem;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:1.75rem 2rem}
+.modal-tabs{display:flex;gap:0;margin-bottom:1.75rem;border:1px solid var(--border)}
+.mtab{flex:1;padding:.7rem;background:transparent;border:none;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);cursor:pointer;transition:all .2s}
+.mtab.on{background:var(--a);color:#06080f}
+.form-group{margin-bottom:1.1rem}
+.form-group label{display:block;font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:.45rem}
+.form-group input,.form-group select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:'Syne',sans-serif;font-size:.85rem;padding:.72rem 1rem;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--a);box-shadow:0 0 0 3px rgba(184,255,87,.08)}
+.form-group select option{background:var(--s1)}
+.form-divider{display:flex;align-items:center;gap:.75rem;margin:1.5rem 0;color:var(--muted);font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase}
+.form-divider::before,.form-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.pay-methods{display:flex;gap:.4rem;margin-bottom:1.1rem}
+.pay-btn{flex:1;padding:.6rem .4rem;background:transparent;border:1px solid var(--border);cursor:pointer;color:var(--muted2);font-size:.68rem;transition:all .2s;font-family:'Syne',sans-serif;font-weight:600}
+.pay-btn:hover,.pay-btn.on{border-color:var(--a);color:var(--a);background:rgba(184,255,87,.06)}
+.form-note{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);text-align:center;margin-top:1rem;line-height:1.7}
+.form-note a{color:var(--a);text-decoration:none}
+.err-msg{color:#ff6b6b;font-size:.72rem;text-align:center;margin-top:.75rem;display:none}
+
+/* === DASHBOARD === */
+.dashboard{display:none;min-height:100vh;padding-top:80px;position:relative;z-index:1}
+.dash-top{background:var(--s1);border-bottom:1px solid var(--border);padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center}
+.dash-title{font-family:'Instrument Serif',serif;font-size:1.5rem}
+.dash-body{padding:2rem 3rem;max-width:1100px;margin:0 auto}
+.dash-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.dcard{background:var(--s1);border:1px solid var(--border);padding:1.5rem;transition:border-color .2s}
+.dcard:hover{border-color:var(--border2)}
+.dcard-label{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:.5rem}
+.dcard-val{font-family:'Instrument Serif',serif;font-size:2.2rem;line-height:1}
+.stations-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+.dstation{background:var(--s1);border:1px solid var(--border);padding:1.5rem;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s}
+.dstation:hover{border-color:var(--border2)}
+.dstation-name{font-weight:700;font-size:.9rem;margin-bottom:.2rem}
+.dstation-genre{font-family:'DM Mono',monospace;font-size:.57rem;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase}
+.toggle{width:44px;height:24px;background:var(--border2);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .3s}
+.toggle.on{background:var(--a)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:var(--bg);transition:transform .25s}
+.toggle.on::after{transform:translateX(20px);background:#06080f}
+
+/* === FOOTER === */
+footer{border-top:1px solid var(--border);padding:4rem 3rem 3rem;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:3rem;background:var(--bg);position:relative;z-index:1}
+.foot-logo{font-family:'Instrument Serif',serif;font-size:1.5rem;font-style:italic;color:var(--a);margin-bottom:.5rem;text-shadow:0 0 20px rgba(184,255,87,.3)}
+.foot-desc{font-size:.78rem;color:var(--muted2);line-height:1.9;max-width:240px;font-weight:400;margin-top:.5rem}
+.foot-col-title{font-family:'DM Mono',monospace;font-size:.57rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);margin-bottom:1.2rem}
+.foot-links{list-style:none;display:flex;flex-direction:column;gap:.65rem}
+.foot-links a{font-size:.8rem;color:var(--muted2);text-decoration:none;transition:color .2s;font-weight:400}
+.foot-links a:hover{color:var(--a)}
+.foot-bottom{border-top:1px solid var(--border);padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg);position:relative;z-index:1}
+.status-dot{display:inline-block;width:6px;height:6px;background:var(--a);border-radius:50%;margin-right:.4rem;box-shadow:0 0 8px var(--a);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--a)}50%{opacity:.4;box-shadow:0 0 2px var(--a)}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* === RESPONSIVE === */
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .section,.pricing-section,.faq-section,.how-section,.cta-banner{padding:4rem 1.5rem}
+  .demo-sec{padding:4rem 1.5rem}
+  .feat-grid,.pricing-grid,.how-grid{grid-template-columns:1fr}
+  .demo-inner{grid-template-columns:1fr}
+  .hero-stats{gap:1.5rem;flex-wrap:wrap;justify-content:center}
+  footer{grid-template-columns:1fr;padding:2.5rem 1.5rem}
+  .foot-bottom{flex-direction:column;gap:.5rem;text-align:center;padding:1.25rem 1.5rem}
+  .dash-body{padding:1.5rem}
+  .dash-cards{grid-template-columns:1fr 1fr}
+  .stations-grid{grid-template-columns:1fr}
+  .cta-buttons{flex-direction:column;align-items:center}
+}
+</style>
 </head>
-<body style="font-family: Arial; text-align: center; margin-top: 100px;">
+<body>
 
-    <h1>Twoje Radio dla Lokali</h1>
-    <p>Muzyka 24/7 dla restauracji, sklepów i hoteli</p>
+<!-- ANIMATED BACKGROUND -->
+<canvas id="bgCanvas"></canvas>
 
-    <button onclick="alert('Tu będzie odtwarzacz muzyki')">
-        ▶ Play
-    </button>
+<div class="wrap">
 
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Muza<span>-X</span></div>
+  <ul class="nav-links">
+    <li><a href="#oferta">Oferta</a></li>
+    <li><a href="#cennik">Cennik</a></li>
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn btn-ghost" onclick="openModal('login');return false">Zaloguj się</a>
+    <a href="#" class="btn btn-primary" onclick="openModal('register');return false">14 dni za darmo</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="mainSite">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orbs">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="hero-tag">Legalna muzyka B2B · Bez ZAiKS · Bez tantiem</div>
+  <h1>
+    Muzyka, która<br>
+    <em>sprzedaje</em>
+    <span class="line2">dla Twojego lokalu</span>
+  </h1>
+  <p class="hero-sub">Radio 24/7 dla restauracji, sklepów i hoteli. Legalne, bez opłat do STOART, SAWP i ZPAV. Dziesiątki tysięcy utworów, zero monotonii, zero reklam.</p>
+  <div class="hero-ctas">
+    <a href="#" class="btn btn-primary btn-lg" onclick="openModal('register');return false">Zacznij 14 dni za darmo</a>
+    <a href="#demo" class="btn btn-ghost btn-lg">Posłuchaj demo ↓</a>
+  </div>
+  <div class="hero-stats">
+    <div><div class="hstat-num">10K+</div><div class="hstat-label">Utworów</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div><div class="hstat-num">6</div><div class="hstat-label">Stacji</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div><div class="hstat-num">24/7</div><div class="hstat-label">Non-stop</div></div>
+    <div style="width:1px;background:var(--border)"></div>
+    <div><div class="hstat-num">100%</div><div class="hstat-label">Legalne</div></div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>Restauracje</span><span>Hotele</span><span>Sklepy</span><span>Galerie handlowe</span><span>Salony kosmetyczne</span><span>Kawiarnie</span><span>SPA & Wellness</span><span>Stacje benzynowe</span><span>Apteki</span><span>Kliniki</span><span>Salony fryzjerskie</span><span>Biura</span>
+    <span>Restauracje</span><span>Hotele</span><span>Sklepy</span><span>Galerie handlowe</span><span>Salony kosmetyczne</span><span>Kawiarnie</span><span>SPA & Wellness</span><span>Stacje benzynowe</span><span>Apteki</span><span>Kliniki</span><span>Salony fryzjerskie</span><span>Biura</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="oferta">
+  <div class="section-tag">Dlaczego Muza-X</div>
+  <div class="section-title">Wszystko czego potrzebuje<br><em>Twój biznes</em></div>
+  <p class="section-sub">Nie jesteśmy zwykłym radiem. Jesteśmy platformą muzyczną zaprojektowaną wyłącznie dla lokali komercyjnych.</p>
+  <div class="feat-grid">
+    <div class="feat">
+      <div class="feat-num">01</div>
+      <div class="feat-icon green">⚡</div>
+      <div class="feat-title">Zero opłat do OZZ</div>
+      <div class="feat-desc">Brak płatności do STOART, SAWP, ZPAV i ZAiKS. Nasza muzyka jest w 100% licencjonowana bezpośrednio od artystów — płacisz tylko nam, nic więcej.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-num">02</div>
+      <div class="feat-icon blue">🎵</div>
+      <div class="feat-title">10 000+ utworów</div>
+      <div class="feat-desc">Rozbudowana baza regularnie uzupełniana o nowe pozycje. Kilkaset nowych utworów każdego miesiąca — bez monotonii przez cały rok.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-num">03</div>
+      <div class="feat-icon pink">📻</div>
+      <div class="feat-title">6 stacji tematycznych</div>
+      <div class="feat-desc">Cafe Chill, Retail Pop, Hotel Lounge, Bistro Jazz, Late Night, Morning Flow. Każda dobierana do pory dnia i atmosfery Twojego lokalu.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-num">04</div>
+      <div class="feat-icon amber">🕐</div>
+      <div class="feat-title">Radio 24/7</div>
+      <div class="feat-desc">System działa bez przerwy, w automatycznym trybie. Playlisty dobierane do pory dnia — rano energetycznie, wieczorem relaksacyjnie.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-num">05</div>
+      <div class="feat-icon green">📱</div>
+      <div class="feat-title">Aplikacja mobilna</div>
+      <div class="feat-desc">Android i iOS. Zarządzaj muzyką z telefonu lub tabletu. Zmień stację, głośność, dodaj własne komunikaty — z dowolnego miejsca.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-num">06</div>
+      <div class="feat-icon blue">🔒</div>
+      <div class="feat-title">Certyfikat legalności</div>
+      <div class="feat-desc">Każdy klient otrzymuje dokument potwierdzający legalność odtwarzania. Pełna ochrona przed kontrolami ze strony organizacji OZZ.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo-sec" id="demo">
+  <div class="demo-inner">
+    <div>
+      <div class="section-tag">Demo</div>
+      <div class="section-title">Posłuchaj<br><em>zanim kupisz</em></div>
+      <p class="section-sub" style="margin-bottom:2.5rem">Wypróbuj każdą z 6 stacji tematycznych. Wybierz klimat pasujący do Twojego lokalu — od spokojnej kawiarni po dynamiczny retail.</p>
+      <a href="#cennik" class="btn btn-primary">Wybierz pakiet →</a>
+      <div style="margin-top:2rem;display:flex;flex-direction:column;gap:.75rem">
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);display:flex;align-items:center;gap:.5rem"><span style="color:var(--a)">✓</span> Bez rejestracji</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);display:flex;align-items:center;gap:.5rem"><span style="color:var(--a)">✓</span> Pełna jakość audio</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);display:flex;align-items:center;gap:.5rem"><span style="color:var(--a)">✓</span> 6 różnych stacji</div>
+      </div>
+    </div>
+    <div class="player-card" id="playerCard">
+      <div class="player-card-glow"></div>
+      <div class="stab-grid">
+        <button class="stab on" onclick="setS(this,'Cafe Chill','Smooth & Relaxed')">Cafe Chill</button>
+        <button class="stab" onclick="setS(this,'Retail Pop','Upbeat & Fresh')">Retail Pop</button>
+        <button class="stab" onclick="setS(this,'Hotel Lounge','Elegant & Warm')">Hotel Lounge</button>
+        <button class="stab" onclick="setS(this,'Bistro Jazz','Warm & Soulful')">Bistro Jazz</button>
+        <button class="stab" onclick="setS(this,'Late Night','Deep & Moody')">Late Night</button>
+        <button class="stab" onclick="setS(this,'Morning Flow','Light & Fresh')">Morning Flow</button>
+      </div>
+      <div class="np-lbl">Teraz gra</div>
+      <div class="np-title" id="npTitle">— wybierz stację —</div>
+      <div class="np-artist" id="npArtist">Wciśnij Play aby zacząć</div>
+      <div class="wv" id="wv">
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+        <div class="wb"></div><div class="wb"></div><div class="wb"></div>
+      </div>
+      <div class="ctrl">
+        <button class="pbtn" id="pbtn" onclick="togglePlay()">
+          <svg id="pico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="vol-wrap">
+          <span>🔈</span>
+          <input type="range" min="0" max="100" value="75">
+          <span>🔊</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="cennik">
+  <div class="section-tag">Cennik</div>
+  <div class="section-title">Przejrzysty<br><em>cennik</em></div>
+  <p class="section-sub">Bez ukrytych opłat, bez umów długoterminowych. Anuluj kiedy chcesz.</p>
+  <div class="pricing-grid">
+    <div class="plan">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price"><sup>zł</sup><span class="dash"> — </span></div>
+      <div class="plan-period">/ miesiąc netto</div>
+      <ul class="plan-features">
+        <li><span class="chk">✓</span>1 stacja do wyboru</li>
+        <li><span class="chk">✓</span>Panel przez przeglądarkę</li>
+        <li><span class="chk">✓</span>Certyfikat legalności</li>
+        <li class="no"><span class="chk">—</span>Aplikacja mobilna</li>
+        <li class="no"><span class="chk">—</span>Własne komunikaty</li>
+        <li class="no"><span class="chk">—</span>Priorytetowy support</li>
+      </ul>
+      <a href="#" class="btn btn-ghost btn-block" onclick="openModal('register');return false">Zacznij za darmo</a>
+      <p class="plan-note">14 dni próbne · bez karty</p>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">Najpopularniejszy</div>
+      <div class="plan-name">Business</div>
+      <div class="plan-price"><sup>zł</sup><span class="dash"> — </span></div>
+      <div class="plan-period">/ miesiąc netto</div>
+      <ul class="plan-features">
+        <li><span class="chk">✓</span>3 stacje do wyboru</li>
+        <li><span class="chk">✓</span>Panel przez przeglądarkę</li>
+        <li><span class="chk">✓</span>Certyfikat legalności</li>
+        <li><span class="chk">✓</span>Aplikacja mobilna</li>
+        <li><span class="chk">✓</span>Własne komunikaty (2/h)</li>
+        <li class="no"><span class="chk">—</span>Priorytetowy support</li>
+      </ul>
+      <a href="#" class="btn btn-primary btn-block" onclick="openModal('register');return false">Zacznij za darmo</a>
+      <p class="plan-note">14 dni próbne · bez karty</p>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price"><sup>zł</sup><span class="dash"> — </span></div>
+      <div class="plan-period">/ miesiąc netto</div>
+      <ul class="plan-features">
+        <li><span class="chk">✓</span>Wszystkie 6 stacji</li>
+        <li><span class="chk">✓</span>Panel przez przeglądarkę</li>
+        <li><span class="chk">✓</span>Certyfikat legalności</li>
+        <li><span class="chk">✓</span>Aplikacja mobilna</li>
+        <li><span class="chk">✓</span>Własne komunikaty (bez limitu)</li>
+        <li><span class="chk">✓</span>Priorytetowy support</li>
+      </ul>
+      <a href="#" class="btn btn-ghost btn-block" onclick="openModal('register');return false">Zacznij za darmo</a>
+      <p class="plan-note">14 dni próbne · bez karty</p>
+    </div>
+  </div>
+  <p style="text-align:center;margin-top:2.5rem;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.1em">Ceny zostaną ogłoszone wkrótce &nbsp;·&nbsp; Skontaktuj się po wycenę indywidualną</p>
+</section>
+
+<!-- HOW -->
+<section class="how-section">
+  <div class="section-tag">Jak to działa</div>
+  <div class="section-title">Zacznij grać w<br><em>4 krokach</em></div>
+  <div class="how-grid">
+    <div class="step"><div class="step-line"></div><div class="step-num">01</div><div class="step-title">Zarejestruj konto</div><div class="step-desc">Wypełnij formularz w 60 sekund. Żadnych umów, żadnych zobowiązań na start.</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-num">02</div><div class="step-title">Wybierz pakiet</div><div class="step-desc">Starter, Business lub Pro — dopasuj do wielkości i charakteru Twojego lokalu.</div></div>
+    <div class="step"><div class="step-line"></div><div class="step-num">03</div><div class="step-title">Wybierz stacje</div><div class="step-desc">Wskaż klimat muzyczny pasujący do Twojego miejsca. Zmienisz to w każdej chwili.</div></div>
+    <div class="step"><div class="step-num">04</div><div class="step-title">Graj muzykę</div><div class="step-desc">Otwórz panel, wciśnij Play. Muzyka gra 24/7. Certyfikat legalności dostaniesz mailem.</div></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+  <div style="text-align:center">
+    <div class="section-tag" style="justify-content:center">FAQ</div>
+    <div class="section-title">Najczęstsze<br><em>pytania</em></div>
+  </div>
+  <div class="faq-inner">
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Czy odtwarzanie muzyki Muza-X jest naprawdę legalne?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Tak, w 100%. Nasza muzyka pochodzi bezpośrednio od niezależnych artystów i wytwórni, które udzieliły nam pełnej licencji na publiczne odtwarzanie komercyjne. Nie musisz płacić do STOART, SAWP, ZPAV ani ZAiKS. Każdy klient otrzymuje certyfikat legalności.</p></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Czy ta muzyka jest znana — słyszałem ją gdzieś?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Nasza baza to muzyka niezależna — nie usłyszysz jej w telewizji ani popularnych serwisach streamingowych. To świadomy wybór: dzięki temu możemy oferować ją bez opłat do OZZ. Jakość brzmienia jest profesjonalna, a klimat idealnie dopasowany do lokali komercyjnych.</p></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Jak działa 14-dniowy trial za darmo?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Rejestrujesz się i wybierasz pakiet — nie potrzebujemy karty kredytowej na start. Przez 14 dni korzystasz z pełnych możliwości wybranego planu. Dopiero po trialu decydujesz czy chcesz kontynuować i dodajesz metodę płatności.</p></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Jak słucham muzyki w lokalu?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Przez przeglądarkę na dowolnym urządzeniu (komputer, tablet, telefon) podłączonym do systemu audio lokalu. W pakietach Business i Pro dostępna jest dodatkowa aplikacja mobilna Android/iOS. Wystarczy Wi-Fi lub dane mobilne.</p></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Czy mogę anulować subskrypcję w każdej chwili?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Tak. Brak długoterminowych umów. Anulujesz w panelu klienta jednym kliknięciem. Dostęp trwa do końca opłaconego okresu rozliczeniowego.</p></div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="tFaq(this)">Jakie metody płatności akceptujecie?<span class="ico">+</span></div>
+      <div class="faq-a"><p>Karta płatnicza (Visa, Mastercard), BLIK, przelew bankowy oraz PayPal. Płatności są obsługiwane przez Stripe — certyfikowany, szyfrowany system płatności bezpieczny dla klientów biznesowych.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<section class="cta-banner">
+  <div class="cta-badge">Gotowy zacząć?</div>
+  <div class="cta-title">Muzyka w Twoim lokalu<br>już <em>dziś.</em></div>
+  <p class="cta-sub">14 dni bezpłatnie. Bez karty kredytowej. Anuluj kiedy chcesz.</p>
+  <div class="cta-buttons">
+    <a href="#" class="btn btn-primary btn-lg" onclick="openModal('register');return false">Utwórz darmowe konto</a>
+    <a href="mailto:kontakt@muza-x.pl" class="btn btn-pink btn-lg">Zapytaj o wycenę</a>
+  </div>
+  <div class="trust-row">
+    <div class="trust-item">100% legalne</div>
+    <div class="trust-item">Certyfikat legalności</div>
+    <div class="trust-item">Bez umów</div>
+    <div class="trust-item">Bez ZAiKS</div>
+    <div class="trust-item">Wsparcie 24/7</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="foot-logo">Muza-X</div>
+    <p class="foot-desc">Legalna muzyka dla lokali komercyjnych. Radio 24/7 bez opłat do organizacji zbiorowego zarządzania prawami autorskimi.</p>
+  </div>
+  <div>
+    <div class="foot-col-title">Oferta</div>
+    <ul class="foot-links">
+      <li><a href="#">Muzyka do restauracji</a></li>
+      <li><a href="#">Muzyka do hotelu</a></li>
+      <li><a href="#">Muzyka do sklepu</a></li>
+      <li><a href="#">Muzyka do galerii</a></li>
+      <li><a href="#">Muzyka do salonu</a></li>
+    </ul>
+  </div>
+  <div>
+    <div class="foot-col-title">Firma</div>
+    <ul class="foot-links">
+      <li><a href="#">O nas</a></li>
+      <li><a href="#">Kontakt</a></li>
+      <li><a href="#">Polityka prywatności</a></li>
+      <li><a href="#">Regulamin</a></li>
+      <li><a href="#" onclick="openModal('login');return false">Panel klienta</a></li>
+    </ul>
+  </div>
+</footer>
+<div class="foot-bottom">
+  <p><span class="status-dot"></span>Wszystkie systemy działają</p>
+  <p>© 2025 Muza-X &nbsp;·&nbsp; Muzyka licencjonowana bezpośrednio</p>
+</div>
+
+</div><!-- /mainSite -->
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+  <div class="dash-top">
+    <div class="dash-title">Panel klienta</div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <span id="dashUser" style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)"></span>
+      <button class="btn btn-ghost" onclick="logout()">Wyloguj</button>
+    </div>
+  </div>
+  <div class="dash-body">
+    <div class="dash-cards">
+      <div class="dcard"><div class="dcard-label">Twój pakiet</div><div class="dcard-val" id="dPlan" style="color:var(--a)">Business</div></div>
+      <div class="dcard"><div class="dcard-label">Status</div><div class="dcard-val" style="color:var(--a);font-size:1.1rem;display:flex;align-items:center;gap:.5rem;margin-top:.3rem"><span class="status-dot"></span>Aktywny</div></div>
+      <div class="dcard"><div class="dcard-label">Następna płatność</div><div class="dcard-val" id="dNext" style="font-size:1.2rem;margin-top:.3rem">—</div></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:1rem">Twoje stacje</div>
+    <div class="stations-grid">
+      <div class="dstation"><div><div class="dstation-name">Cafe Chill</div><div class="dstation-genre">Chill · Acoustic · Ambient</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+      <div class="dstation"><div><div class="dstation-name">Retail Pop</div><div class="dstation-genre">Pop · Upbeat · Commercial</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+      <div class="dstation"><div><div class="dstation-name">Hotel Lounge</div><div class="dstation-genre">Lounge · Jazz · Elegant</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+      <div class="dstation"><div><div class="dstation-name">Bistro Jazz</div><div class="dstation-genre">Jazz · Swing · Warm</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+    </div>
+    <div style="margin-top:2rem;display:flex;gap:.75rem;flex-wrap:wrap">
+      <a href="#" class="btn btn-primary">Zarządzaj subskrypcją</a>
+      <a href="#" class="btn btn-ghost">Pobierz certyfikat</a>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOuter(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="mTitle">Zaloguj się</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="mtab on" id="tLogin" onclick="switchTab('login')">Logowanie</button>
+        <button class="mtab" id="tReg" onclick="switchTab('register')">Rejestracja</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="fLogin">
+        <div class="form-group"><label>Email</label><input type="email" id="lEmail" placeholder="twoj@email.pl"></div>
+        <div class="form-group"><label>Hasło</label><input type="password" id="lPass" placeholder="••••••••"></div>
+        <button class="btn btn-primary btn-block btn-lg" style="margin-top:.5rem" onclick="doLogin()">Zaloguj się</button>
+        <div class="err-msg" id="lErr"></div>
+        <p class="form-note"><a href="#">Zapomniałem hasła</a></p>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="fReg" style="display:none">
+        <div class="form-group"><label>Imię i nazwisko</label><input type="text" id="rName" placeholder="Jan Kowalski"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="rEmail" placeholder="twoj@email.pl"></div>
+        <div class="form-group"><label>Hasło</label><input type="password" id="rPass" placeholder="min. 8 znaków"></div>
+        <div class="form-group"><label>Pakiet</label>
+          <select id="rPlan">
+            <option value="starter">Starter — 14 dni za darmo</option>
+            <option value="business" selected>Business — 14 dni za darmo</option>
+            <option value="pro">Pro — 14 dni za darmo</option>
+          </select>
+        </div>
+        <div class="form-divider">Metoda płatności po trialu</div>
+        <div class="pay-methods">
+          <button class="pay-btn on" onclick="selPay(this)">💳 Karta</button>
+          <button class="pay-btn" onclick="selPay(this)">BLIK</button>
+          <button class="pay-btn" onclick="selPay(this)">🏦 Przelew</button>
+          <button class="pay-btn" onclick="selPay(this)">PayPal</button>
+        </div>
+        <div id="cardF">
+          <div class="form-group"><label>Numer karty</label><input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtC(this)"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div class="form-group"><label>Ważna do</label><input type="text" placeholder="MM/RR" maxlength="5" oninput="fmtE(this)"></div>
+            <div class="form-group"><label>CVC</label><input type="text" placeholder="123" maxlength="3"></div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" style="margin-top:.5rem" onclick="doReg()">Utwórz konto · 14 dni za darmo</button>
+        <div class="err-msg" id="rErr"></div>
+        <p class="form-note">Nie pobieramy opłat przez 14 dni. <a href="#">Regulamin</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// === CANVAS BG — animated sound rings ===
+(function(){
+  const c=document.getElementById('bgCanvas');
+  const ctx=c.getContext('2d');
+  let W,H,rings=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  class Ring{constructor(){this.reset()}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.r=0;this.maxR=100+Math.random()*250;this.speed=.4+Math.random()*.6;this.life=0;this.col=Math.random()<.5?'184,255,87':Math.random()<.5?'87,196,255':'255,126,179'}update(){this.r+=this.speed;this.life=this.r/this.maxR;if(this.r>this.maxR)this.reset()}draw(){const a=(1-this.life)*.15;ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.strokeStyle=`rgba(${this.col},${a})`;ctx.lineWidth=1;ctx.stroke()}}
+  for(let i=0;i<12;i++){const r=new Ring();r.r=Math.random()*r.maxR;rings.push(r)}
+  function loop(){ctx.clearRect(0,0,W,H);rings.forEach(r=>{r.update();r.draw()});requestAnimationFrame(loop)}
+  loop();
+})();
+
+// === PLAYER ===
+let playing=false,curS='Cafe Chill';
+function setS(btn,name,genre){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');curS=name;
+  if(playing){document.getElementById('npTitle').textContent=name+' Radio';document.getElementById('npArtist').textContent='▶ '+genre;}
+}
+function togglePlay(){
+  playing=!playing;
+  const card=document.getElementById('playerCard');
+  const ico=document.getElementById('pico');
+  if(playing){card.classList.add('playing');ico.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';document.getElementById('npTitle').textContent=curS+' Radio';document.getElementById('npArtist').textContent='▶ Na żywo';}
+  else{card.classList.remove('playing');ico.innerHTML='<path d="M8 5v14l11-7z"/>';document.getElementById('npTitle').textContent='— wybierz stację —';document.getElementById('npArtist').textContent='Wciśnij Play aby zacząć';}
+}
+
+// === FAQ ===
+function tFaq(el){el.parentElement.classList.toggle('open')}
+
+// === MODAL ===
+function openModal(tab){document.getElementById('modalOverlay').classList.add('open');switchTab(tab||'login')}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+function closeOuter(e){if(e.target===document.getElementById('modalOverlay'))closeModal()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function switchTab(tab){
+  const isL=tab==='login';
+  document.getElementById('tLogin').classList.toggle('on',isL);
+  document.getElementById('tReg').classList.toggle('on',!isL);
+  document.getElementById('fLogin').style.display=isL?'':'none';
+  document.getElementById('fReg').style.display=isL?'none':'';
+  document.getElementById('mTitle').textContent=isL?'Zaloguj się':'Utwórz konto';
+}
+
+// === AUTH ===
+function doLogin(){
+  const e=document.getElementById('lEmail').value,p=document.getElementById('lPass').value,err=document.getElementById('lErr');
+  if(!e||!p){err.textContent='Uzupełnij email i hasło.';err.style.display='block';return;}
+  if(e==='demo@muza-x.pl'&&p==='demo123'){err.style.display='none';closeModal();showDash(e,'Business');}
+  else{err.textContent='Nieprawidłowe dane. Demo: demo@muza-x.pl / demo123';err.style.display='block';}
+}
+function doReg(){
+  const name=document.getElementById('rName').value,email=document.getElementById('rEmail').value,pass=document.getElementById('rPass').value;
+  const err=document.getElementById('rErr');
+  if(!name||!email||!pass){err.textContent='Uzupełnij wszystkie pola.';err.style.display='block';return;}
+  if(pass.length<8){err.textContent='Hasło musi mieć min. 8 znaków.';err.style.display='block';return;}
+  err.style.display='none';closeModal();
+  const plan=document.getElementById('rPlan').value;
+  showDash(email,plan.charAt(0).toUpperCase()+plan.slice(1));
+}
+function showDash(email,plan){
+  document.getElementById('mainSite').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('dashUser').textContent=email;
+  document.getElementById('dPlan').textContent=plan;
+  const d=new Date();d.setDate(d.getDate()+14);
+  document.getElementById('dNext').textContent=d.toLocaleDateString('pl-PL');
+  window.scrollTo(0,0);
+}
+function logout(){document.getElementById('dashboard').style.display='none';document.getElementById('mainSite').style.display='';window.scrollTo(0,0);}
+
+// === PAY ===
+function selPay(btn){document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('cardF').style.display=btn.textContent.includes('Karta')?'':'none';}
+
+// === CARD FORMAT ===
+function fmtC(el){el.value=el.value.replace(/\D/g,'').replace(/(.{4})/g,'$1 ').trim().slice(0,19);}
+function fmtE(el){el.value=el.value.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1/$2').slice(0,5);}
+</script>
 </body>
 </html>
